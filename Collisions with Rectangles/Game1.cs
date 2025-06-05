@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System.Collections.Generic;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
@@ -27,7 +28,7 @@ namespace Collisions_with_Rectangles
         Rectangle barrierRect1, barrierRect2;
 
         Texture2D coinTexture;
-        Rectangle coinRect;
+        List<Rectangle> coins;
 
         Rectangle window;
 
@@ -50,12 +51,18 @@ namespace Collisions_with_Rectangles
             barrierRect1 = new Rectangle(0, 250, 350, 75);
             barrierRect2 = new Rectangle(450, 250, 350, 75);
 
-            coinRect = new Rectangle(400, 50, coinTexture.Width, coinTexture.Height);
+            coins = new List<Rectangle>();
+            
             exitRect = new Rectangle(700, 380, 100, 100);
 
             window = new Rectangle(0, 0, 800, 400);
 
             base.Initialize();
+
+            coins.Add(new Rectangle(400, 50, coinTexture.Width, coinTexture.Height));
+            coins.Add(new Rectangle(475, 75, coinTexture.Width, coinTexture.Height));
+            coins.Add(new Rectangle(200, 400, coinTexture.Width, coinTexture.Height));
+            coins.Add(new Rectangle(400, 300, coinTexture.Width, coinTexture.Height));
         }
 
         protected override void LoadContent()
@@ -81,6 +88,7 @@ namespace Collisions_with_Rectangles
                 Exit();
 
             keyboardState = Keyboard.GetState();
+            mouseState = Mouse.GetState();
 
             pacSpeed = Vector2.Zero;
             if (keyboardState.IsKeyDown(Keys.Left))
@@ -105,6 +113,22 @@ namespace Collisions_with_Rectangles
             }
             pacRect.Offset(pacSpeed);
 
+            for (int i = 0; i < coins.Count; i++)
+            {
+                if (pacRect.Intersects(coins[i]))
+                {
+                    coins.RemoveAt(i);
+                    i--;
+                }
+            }
+
+            if (mouseState.LeftButton == ButtonState.Pressed)
+                if (exitRect.Contains(mouseState.X, mouseState.Y))
+                    Exit();
+
+            if (exitRect.Contains(pacRect))
+                Exit();
+
             // TODO: Add your update logic here
 
             base.Update(gameTime);
@@ -122,7 +146,8 @@ namespace Collisions_with_Rectangles
             _spriteBatch.Draw(barrierTexture, barrierRect2, Color.White);
             _spriteBatch.Draw(exitTexture, exitRect, Color.White);
             _spriteBatch.Draw(currentPacTexture, pacRect, Color.White);
-            _spriteBatch.Draw(coinTexture, coinRect, Color.White);
+            foreach (Rectangle coin in coins) 
+                _spriteBatch.Draw(coinTexture, coin, Color.White);
 
             _spriteBatch.End();
 
